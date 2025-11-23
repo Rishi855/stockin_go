@@ -16,23 +16,42 @@ func UpdateDataFromWebScrap(c *gin.Context) {
 	size := 15
 	allStocks := []models.Stock{}
 
-	// 1️⃣ FETCH DATA FROM GROWW API
 	for {
+
+		// Build request body exactly like your cURL
 		body := map[string]interface{}{
-			"listFilters": map[string]interface{}{},
-			"objFilters":  map[string]interface{}{},
-			"page":        page,
-			"size":        size,
-			"sortBy":      "NA",
-			"sortType":    "ASC",
+			"listFilters": map[string]interface{}{
+				"INDUSTRY": []interface{}{},
+				"INDEX":    []interface{}{},
+			},
+			"objFilters": map[string]interface{}{
+				"CLOSE_PRICE": map[string]interface{}{
+					"min": 0,
+					"max": 500000,
+				},
+				"MARKET_CAP": map[string]interface{}{
+					"min": 0,
+					"max": 3000000000000000,
+				},
+			},
+			"page":    page, // Go sends number → accepted by Groww
+			"size":    size,
+			"sortBy":  "NA",
+			"sortType": "ASC",
 		}
 
 		jsonBody, _ := json.Marshal(body)
-		req, _ := http.NewRequest("POST",
+
+		req, _ := http.NewRequest(
+			"POST",
 			"https://groww.in/v1/api/stocks_data/v1/all_stocks",
 			bytes.NewReader(jsonBody),
 		)
+
 		req.Header.Set("Content-Type", "application/json")
+
+		// OPTIONAL: cookies from cURL (NOT required normally)
+		req.Header.Set("Cookie", "__cf_bm=PKw9ukvlb...; _cfuvid=xMq8nxsQ...")
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -45,7 +64,11 @@ func UpdateDataFromWebScrap(c *gin.Context) {
 
 		var result models.StockRecords
 		if err := json.Unmarshal(raw, &result); err != nil {
-			c.JSON(500, gin.H{"error": "Invalid Groww JSON"})
+			c.JSON(500, gin.H{
+				"error":  "Invalid JSON from Groww",
+				"raw":    string(raw),
+				"status": resp.StatusCode,
+			})
 			return
 		}
 
@@ -57,32 +80,26 @@ func UpdateDataFromWebScrap(c *gin.Context) {
 		page++
 	}
 
-	// 2️⃣ DB OPERATIONS (DELEGATED TO MODEL FILES)
+	// DB operations in model files
 	for _, s := range allStocks {
 
-		// find existing stock
 		existing := models.FindStockByGrowwId(s.GrowwContractId)
 
 		if existing != nil {
-			// update existing data
 			models.UpdateStock(existing, &s)
 		} else {
-			// insert new row
 			models.InsertStock(&s)
 		}
 
-		// live price upsert
 		if s.LivePriceDto != nil {
 			models.UpsertLivePrice(s.LivePriceDto)
 		}
 	}
 
-	// response
 	c.JSON(200, gin.H{
 		"status":  200,
 		"success": true,
-		"message": "Successfully updated stocks data",
+		"message": "Stock data updated from Groww",
 		"data":    len(allStocks),
-		"error":   nil,
 	})
 }

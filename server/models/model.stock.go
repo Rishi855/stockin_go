@@ -5,22 +5,22 @@ import "stockin/internal/setting"
 type Stock struct {
 	Id               int     `gorm:"column:id;primaryKey" json:"id"`
 	Isin             string  `gorm:"column:isin" json:"isin"`
-	GrowwContractId  string  `gorm:"column:groww_contract_id" json:"groww_contract_id"`
-	CompanyName      string  `gorm:"column:company_name" json:"company_name"`
-	CompanyShortName string  `gorm:"column:company_short_name" json:"company_short_name"`
-	SearchId         string  `gorm:"column:search_id" json:"search_id"`
-	IndustryCode     int     `gorm:"column:industry_code" json:"industry_code"`
-	BseScriptCode    int     `gorm:"column:bse_script_code" json:"bse_script_code"`
-	NseScriptCode    string  `gorm:"column:nse_script_code" json:"nse_script_code"`
-	YearlyHighPrice  float32 `gorm:"column:yearly_high_price" json:"yearly_high_price"`
-	YearlyLowPrice   float32 `gorm:"column:yearly_low_price" json:"yearly_low_price"`
-	ClosePrice       float32 `gorm:"column:close_price" json:"close_price"`
-	MarketCap        int64   `gorm:"column:market_cap" json:"market_cap"`
+	GrowwContractId  string  `gorm:"column:groww_contract_id" json:"growwContractId"`
+	CompanyName      string  `gorm:"column:company_name" json:"companyName"`
+	CompanyShortName string  `gorm:"column:company_short_name" json:"companyShortName"`
+	SearchId         string  `gorm:"column:search_id" json:"searchId"`
+	IndustryCode     int     `gorm:"column:industry_code" json:"industryCode"`
+	BseScriptCode    int     `gorm:"column:bse_script_code" json:"bseScriptCode"`
+	NseScriptCode    string  `gorm:"column:nse_script_code" json:"nseScriptCode"`
+	YearlyHighPrice  float32 `gorm:"column:yearly_high_price" json:"yearlyHighPrice"`
+	YearlyLowPrice   float32 `gorm:"column:yearly_low_price" json:"yearlyLowPrice"`
+	ClosePrice       float32 `gorm:"column:close_price" json:"closePrice"`
+	MarketCap        int64   `gorm:"column:market_cap" json:"marketCap"`
 
-	LivePriceDtoId int           `gorm:"column:live_price_dto_id" json:"live_price_dto_id"`
-	LivePriceDto   *Livepricedto `gorm:"foreignKey:LivePriceDtoId" json:"live_price_dto"`
+	LivePriceDtoId int           `gorm:"column:live_price_dto_id" json:"-"`
+	LivePriceDto   *Livepricedto `gorm:"foreignKey:LivePriceDtoId" json:"livePriceDto"`
 
-	StockNews []StockNews `gorm:"foreignKey:StockId" json:"stock_news"`
+	StockNews []StockNews `gorm:"foreignKey:StockId" json:"stockNews"`
 }
 
 func (Stock) TableName() string {
