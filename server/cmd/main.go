@@ -14,12 +14,11 @@ func main() {
 
 	api := router.Group("/api/database")
 
-	// Your scrap endpoint
 	api.POST("/scrap/groww", groww.UpdateDataFromWebScrap)
 
-	// any next routes:
-	// api.POST("/scrap/news", groww.UpdateLatestNews)
-	// api.POST("/scrap/stock", groww.UpdateStockData)
+	api.POST("/scrap/news", groww.UpdateStockNewsFromWebScrap)
+
+	api.POST("/scrap/stock", groww.UpdateStockDataFromWebScrap)
 
 	// run server
 	port := os.Getenv("PORT")

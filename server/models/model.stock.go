@@ -1,6 +1,10 @@
 package models
 
-import "stockin/internal/setting"
+import (
+	"stockin/internal/setting"
+
+	"gorm.io/gorm"
+)
 
 type Stock struct {
 	Id               int     `gorm:"column:id;primaryKey" json:"id"`
@@ -25,6 +29,13 @@ type Stock struct {
 
 func (Stock) TableName() string {
 	return "stocks"
+}
+
+func (s *Stock) GetAll(db *gorm.DB) ([]Stock, error) {
+	var stocks []Stock
+
+	err := db.Find(&stocks).Error
+	return stocks, err
 }
 
 func FindStockByGrowwId(id string) *Stock {
