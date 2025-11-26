@@ -135,3 +135,135 @@ html,body,#root{ height:100%; }
   display:none;
 }
 .meta{ color: var(--muted); font-size: 13px; display:flex; gap:10px; align-items:center;}
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 99999;
+  backdrop-filter: blur(4px);
+}
+.update-buttons {
+  padding: 16px 20px;
+  max-width: 1200px;
+  margin: 0 auto 8px;
+  width: 100%;
+}
+.update-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.update-row-inline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;        /* allows wrap on narrow screens */
+}
+.update-btn {
+  background: linear-gradient(90deg,#00b4d8,#6c5ce7);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 180px;       /* consistent button widths */
+}
+.update-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.update-btn:hover {
+  opacity: 0.85;
+}
+
+.timestamp {
+  font-size: 13px;
+  color: #aab7cf;
+  margin-right: 8px;
+  min-width: 200px;       /* align timestamps consistently; tweak as needed */
+}
+
+@media (max-width: 700px) {
+  .update-row-inline {
+    gap: 8px;
+  }
+  .update-btn { min-width: 140px; padding: 9px 12px; }
+  .timestamp { min-width: 140px; font-size: 12px; }
+}
+.page-btn {
+  background: linear-gradient(90deg,#00b4d8,#6c5ce7);
+  padding: 8px 18px;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  min-width: 120px;
+  transition: 0.2s ease;
+}
+
+.page-btn:hover {
+  opacity: 0.85;
+}
+
+.page-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.table-controls,
+.table-bottom-controls {
+  display: flex;
+  justify-content: center;   /* center the buttons */
+  gap: 18px;
+  padding: 10px 0;
+}
+/* Toast container aligned top-right */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: toastSlideIn 0.3s ease forwards;
+}
+
+/* Toast box styling */
+.toast-card {
+  background: rgba(37, 29, 97, 0.9);
+  color: #eaf2ff;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  min-width: 260px;
+  max-width: 340px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* fade + slide animation */
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: toastFadeUp 0.3s ease forwards;
+}
+
+/* Slide from top + fade in */
+@keyframes toastFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
