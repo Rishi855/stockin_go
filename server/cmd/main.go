@@ -31,6 +31,7 @@ func main() {
 
 	apiDatabase := router.Group("/api/database")
 	{
+		apiDatabase.GET("/overview",controllers.StockinDatabaseDetails)
 		apiDatabase.POST("/scrap/groww", controllers.UpdateDataFromWebScrap)
 		apiDatabase.POST("/scrap/news", controllers.UpdateStockNewsFromWebScrap)
 		apiDatabase.POST("/scrap/stock", controllers.UpdateStockDataFromWebScrap)

@@ -267,3 +267,6 @@ html,body,#root{ height:100%; }
     transform: translateY(0px);
   }
 }
+.overview-btn {
+  background: linear-gradient(90deg, #6c5ce7, #00b4d8);
+}

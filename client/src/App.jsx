@@ -113,10 +113,94 @@ export default function App() {
     await fetchData(sql, newOffset);
   };
 
+  async function openDatabaseOverview() {
+    try {
+      setToastMsg("Loading database overview...");
+
+      const resp = await fetch("http://localhost:8080/api/database/overview", {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+
+      const data = await resp.json();
+
+      // Build HTML content for new tab
+      const html = `
+        <html>
+        <head>
+          <title>Database Overview</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background: #0b1220;
+              color: #e6eef8;
+              padding: 20px;
+            }
+            h1 { color: #6c5ce7; }
+            .table-box {
+              margin-bottom: 24px;
+              padding: 18px;
+              border-radius: 12px;
+              background: rgba(255,255,255,0.05);
+              border: 1px solid rgba(255,255,255,0.08);
+            }
+            .table-title {
+              font-size: 20px;
+              font-weight: bold;
+              margin-bottom: 10px;
+              color: #00b4d8;
+            }
+            .column {
+              margin: 4px 0;
+              padding: 6px 10px;
+              border-radius: 6px;
+              background: rgba(255,255,255,0.03);
+            }
+          </style>
+        </head>
+        <body>
+          <h1>📘 Database Table Overview</h1>
+
+          ${Object.entries(data.tables)
+            .map(([table, columns]) => {
+              return `
+                <div class="table-box">
+                  <div class="table-title">${table}</div>
+                  ${columns
+                    .map(col => `<div class="column">${col}</div>`)
+                    .join("")}
+                </div>
+              `;
+            })
+            .join("")}
+
+        </body>
+        </html>
+      `;
+
+      // open new tab
+      const newTab = window.open("", "_blank");
+      newTab.document.write(html);
+      newTab.document.close();
+
+    } catch (err) {
+      console.error(err);
+      setToastMsg("Failed to load database overview");
+    }
+  }
+
+
   return (
     <div className="app-root">
       <div className="update-buttons">
         <div className="update-row-inline">
+          <button
+            onClick={openDatabaseOverview}
+            className="update-btn overview-btn"
+          >
+            📘 Database Overview
+          </button>
+
           <button
             onClick={updateGrowwDb}
             className="update-btn"

@@ -303,6 +303,12 @@ func UpdateStockNewsFromWebScrap(c *gin.Context) {
 	})
 }
 
+func StockinDatabaseDetails(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"tables": helper.DATABASE_DETAILS,
+	})
+}
+
 func extractStockData(nextData map[string]interface{}) map[string]interface{} {
 	props, ok := nextData["props"].(map[string]interface{})
 	if !ok {
