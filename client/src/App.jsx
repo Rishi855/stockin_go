@@ -193,46 +193,61 @@ export default function App() {
   return (
     <div className="app-root">
       <div className="update-buttons">
-        <div className="update-row-inline">
+
+        {/* Left: Overview Button */}
+        <div className="overview-section">
           <button
             onClick={openDatabaseOverview}
-            className="update-btn overview-btn"
+            className="overview-btn-main"
           >
             📘 Database Overview
           </button>
+        </div>
 
-          <button
-            onClick={updateGrowwDb}
-            className="update-btn"
-            disabled={updatingGroww}
-            title="Starts large groww DB update"
-          >
-            {updatingGroww ? "Updating groww..." : "Scrap Groww Database(main)"}
-          </button>
-          <span className="timestamp">{lastGrowwUpdate ? `Last: ${lastGrowwUpdate}` : ""}</span>
+        {/* Right: Update Buttons Group */}
+        <div className="updates-group">
+          
+          <div className="update-item">
+            <button
+              onClick={updateGrowwDb}
+              className="update-btn"
+              disabled={updatingGroww}
+            >
+              {updatingGroww ? "Updating Groww..." : "Scrap Groww Database (main)"}
+            </button>
+            <div className="timestamp-small">
+              {lastGrowwUpdate ? `Last: ${lastGrowwUpdate}` : ""}
+            </div>
+          </div>
 
-          <button
-            onClick={updateStockDb}
-            className="update-btn"
-            disabled={updatingStock}
-            title="Starts large stock DB update"
-          >
-            {updatingStock ? "Updating stock..." : "Update Stock Database"}
-          </button>
-          <span className="timestamp">{lastStockUpdate ? `Last: ${lastStockUpdate}` : ""}</span>
+          <div className="update-item">
+            <button
+              onClick={updateStockDb}
+              className="update-btn"
+              disabled={updatingStock}
+            >
+              {updatingStock ? "Updating Stock..." : "Update Stock Database"}
+            </button>
+            <div className="timestamp-small">
+              {lastStockUpdate ? `Last: ${lastStockUpdate}` : ""}
+            </div>
+          </div>
 
-
-          <button
-            onClick={updateNewsDb}
-            className="update-btn"
-            disabled={updatingNews}
-            title="Starts large news DB update"
-          >
-            {updatingNews ? "Updating news..." : "Update News Database"}
-          </button>
-          <span className="timestamp">{lastNewsUpdate ? `Last: ${lastNewsUpdate}` : ""}</span>
+          <div className="update-item">
+            <button
+              onClick={updateNewsDb}
+              className="update-btn"
+              disabled={updatingNews}
+            >
+              {updatingNews ? "Updating News..." : "Update News Database"}
+            </button>
+            <div className="timestamp-small">
+              {lastNewsUpdate ? `Last: ${lastNewsUpdate}` : ""}
+            </div>
+          </div>
         </div>
       </div>
+
 
       <Toast message={toastMsg} onClose={() => setToastMsg("")} />
 
