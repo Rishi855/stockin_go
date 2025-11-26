@@ -1,4 +1,4 @@
-package groww
+package controllers
 
 import (
 	"bytes"
@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"stockin/internal/setting"
+	"stockin/internal/helper"
 	"stockin/models"
+
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
@@ -95,7 +96,7 @@ func UpdateDataFromWebScrap(c *gin.Context) {
 		allStocks = append(allStocks, result.Records...)
 
 		// increment page for next loop (as string)
-		page = stringIncrement(page)
+		page = helper.StringIncrement(page)
 	}
 
 	// DB operations
@@ -307,7 +308,6 @@ func extractStockData(nextData map[string]interface{}) map[string]interface{} {
 	return stockData
 }
 
-
 func scrapeGrowwNextData(searchId string) (map[string]interface{}, error) {
 	url := "https://groww.in/stocks/" + searchId
 
@@ -339,8 +339,3 @@ func scrapeGrowwNextData(searchId string) (map[string]interface{}, error) {
 
 
 // helper: increment numeric string ("0" → "1" → "2")
-func stringIncrement(s string) string {
-    n, _ := strconv.Atoi(s)
-    n++
-    return strconv.Itoa(n)
-}

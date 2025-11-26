@@ -4,7 +4,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
 	"stockin/internal/controllers"
 )
 
@@ -12,15 +14,37 @@ func main() {
 
 	router := gin.Default()
 
-	api := router.Group("/api/database")
+	// -------------------------
+	// ✅ Enable CORS for ALL origins
+	// -------------------------
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: false,
+	}))
 
-	api.POST("/scrap/groww", groww.UpdateDataFromWebScrap)
+	// -------------------------
+	// API ROUTES
+	// -------------------------
 
-	api.POST("/scrap/news", groww.UpdateStockNewsFromWebScrap)
+	apiDatabase := router.Group("/api/database")
+	{
+		apiDatabase.POST("/scrap/groww", controllers.UpdateDataFromWebScrap)
+		apiDatabase.POST("/scrap/news", controllers.UpdateStockNewsFromWebScrap)
+		apiDatabase.POST("/scrap/stock", controllers.UpdateStockDataFromWebScrap)
+	}
 
-	api.POST("/scrap/stock", groww.UpdateStockDataFromWebScrap)
+	apiQuery := router.Group("/api/query")
+	{
+		apiQuery.POST("/select", controllers.SelectFromDatabase)
+	}
 
-	// run server
+	// -------------------------
+	// RUN SERVER
+	// -------------------------
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
