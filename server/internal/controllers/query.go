@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -18,83 +19,92 @@ type QueryRequest struct {
 // SelectFromDatabase runs a (read-only) SQL SELECT supplied in the request and returns
 // the rows as an array of JSON objects. We enforce that only SELECT queries are allowed
 // and wrap the query as a sub-query so we can safely apply LIMIT/OFFSET for pagination.
+
 func SelectFromDatabase(c *gin.Context) {
-	var req QueryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": "invalid request payload", "details": err.Error()})
-		return
-	}
+    var req QueryRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(400, gin.H{"error": "invalid request", "details": err.Error()})
+        return
+    }
 
-	sqlStr := strings.TrimSpace(req.SQL)
-	sqlStr = strings.TrimRight(sqlStr, ";\n \t")
-	if sqlStr == "" {
-		c.JSON(400, gin.H{"error": "sql is required"})
-		return
-	}
+    sqlStr := strings.TrimSpace(req.SQL)
+    sqlStr = strings.TrimRight(sqlStr, ";\n \t")
 
-	// Only allow read-only SELECT queries
-	if !isReadOnlySQL(sqlStr) {
-		c.JSON(400, gin.H{
-			"error": "only read-only SELECT queries are allowed",
-		})
-		return
-	}
+    if sqlStr == "" {
+        c.JSON(400, gin.H{"error": "sql is required"})
+        return
+    }
 
-	if req.Limit <= 0 {
-		req.Limit = 10
-	}
-	if req.Offset < 0 {
-		req.Offset = 0
-	}
+    if !isReadOnlySQL(sqlStr) {
+        c.JSON(400, gin.H{"error": "only SELECT queries allowed"})
+        return
+    }
 
-	db := setting.DB()
+    if req.Limit <= 0 {
+        req.Limit = 10
+    }
+    if req.Offset < 0 {
+        req.Offset = 0
+    }
 
-	composed := fmt.Sprintf("SELECT * FROM (%s) AS q LIMIT %d OFFSET %d", sqlStr, req.Limit, req.Offset)
-	rows, err := db.Raw(composed).Rows()
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to execute query", "details": err.Error()})
-		return
-	}
-	defer rows.Close()
+    db := setting.DB()
 
-	cols, err := rows.Columns()
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to get columns", "details": err.Error()})
-		return
-	}
+    composed := fmt.Sprintf("SELECT * FROM (%s) AS q LIMIT %d OFFSET %d", 
+        sqlStr, req.Limit, req.Offset)
 
-	results := []map[string]interface{}{}
+    rows, err := db.Raw(composed).Rows()
+    if err != nil {
+        c.JSON(500, gin.H{"error": "query failed", "details": err.Error()})
+        return
+    }
+    defer rows.Close()
 
-	for rows.Next() {
-		values := make([]interface{}, len(cols))
-		valuePtrs := make([]interface{}, len(cols))
-		for i := range values {
-			valuePtrs[i] = &values[i]
-		}
+    cols, _ := rows.Columns()
+    results := []string{} // each row as JSON string
 
-		if err := rows.Scan(valuePtrs...); err != nil {
-			c.JSON(500, gin.H{"error": "failed to scan row", "details": err.Error()})
-			return
-		}
+    for rows.Next() {
+        values := make([]interface{}, len(cols))
+        ptrs := make([]interface{}, len(cols))
 
-		rowMap := make(map[string]interface{})
-		for i, col := range cols {
-			var v interface{}
-			rawVal := values[i]
-			// convert []byte -> string for readability
-			if b, ok := rawVal.([]byte); ok {
-				v = string(b)
-			} else {
-				v = rawVal
-			}
-			rowMap[col] = v
-		}
+        for i := range values {
+            ptrs[i] = &values[i]
+        }
 
-		results = append(results, rowMap)
-	}
+        rows.Scan(ptrs...)
 
-	c.JSON(200, gin.H{"success": true, "count": len(results), "data": results})
+        // Build JSON object manually to preserve order
+        var b strings.Builder
+        b.WriteString("{")
+
+        for i, col := range cols {
+            b.WriteString(`"` + col + `":`)
+
+            val := values[i]
+
+            // convert []byte -> string
+            if bts, ok := val.([]byte); ok {
+                val = string(bts)
+            }
+
+            // write json encoded value
+            jsonVal, _ := json.Marshal(val)
+            b.Write(jsonVal)
+
+            if i < len(cols)-1 {
+                b.WriteString(",")
+            }
+        }
+
+        b.WriteString("}")
+        results = append(results, b.String())
+    }
+
+    c.Data(200, "application/json", 
+        []byte(`{"success":true,"count":` +
+            fmt.Sprint(len(results)) +
+            `,"data":[` + strings.Join(results, ",") + `]}`))
 }
+
 
 func isReadOnlySQL(sqlStr string) bool {
 	s := strings.ToLower(sqlStr)
