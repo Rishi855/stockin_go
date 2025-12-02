@@ -301,36 +301,44 @@ join stock_headers sh on cta.stock_header_id = sh.id
 WHERE rn = 1 and cta.stock_header_id <> 161 and cta.second_fii <> 0 and cta.stock_header_id not in (1775, 1874, 2632, 4080)
 order by diff desc;
 
-select * from 	 sshp join stock_headers sh on sshp.stock_header_id = sh.id  where search_id ilike '%icici%'
 
 
--- DELETE AND DROP QUERY
---DROP TABLE IF EXISTS 
---    "StockHeaders",
---    "StockFinancialStatements",
---    "StockSimllarAssets",
---    "StockStats",
---    "StockShareHoldingPatterns",
---    "StockPriceDatas",
---    "StockNews",
---    "Stocks",
---    "LivePriceDtos" CASCADE;
---
---DO $$ 
---DECLARE 
---    r RECORD;
---BEGIN
---    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
---    LOOP
---        EXECUTE 'DROP TABLE IF EXISTS "' || r.tablename || '" CASCADE';
---    END LOOP;
---END $$;
-
-
-select * from stock_news sn order by id desc;
-
+-- FINAL 1
 SELECT stock_id,count(*),array_agg(concat(pub_date,title)) 
 FROM public.stock_news sn
 WHERE pub_date::date >= '2025-04-12'::date
 group by stock_id
 order by count(*) desc;
+
+
+-- FINAL 2
+WITH pivot_data AS (
+ SELECT 
+ sh.display_name AS stock_name,
+ MAX(CASE WHEN shp.period = 'Oct ''25' THEN shp.foreign_institutions END) AS oct25,
+ MAX(CASE WHEN shp.period = 'Sep ''25' THEN shp.foreign_institutions END) AS sep25,
+ MAX(CASE WHEN shp.period = 'Jun ''25' THEN shp.foreign_institutions END) AS jun25,
+ MAX(CASE WHEN shp.period = 'Mar ''25' THEN shp.foreign_institutions END) AS mar25,
+ MAX(CASE WHEN shp.period = 'Dec ''24' THEN shp.foreign_institutions END) AS dec24,
+ MAX(CASE WHEN shp.period = 'Oct ''24' THEN shp.foreign_institutions END) AS oct24
+ FROM stock_share_holding_patterns shp
+ JOIN stock_headers sh ON sh.id = shp.stock_header_id
+ GROUP BY sh.display_name
+)
+SELECT
+ stock_name,
+ oct25 as "Oct '25",
+ sep25 AS "Sep '25",
+ jun25 AS "Jun '25",
+ mar25 AS "Mar '25",
+ dec24 AS "Dec '24",
+ (oct25 - sep25) AS diff_oct25_sept25,
+ (sep25 - jun25) AS diff_sept25_jun25,
+ (jun25 - mar25) AS diff_jun25_mar25,
+ (mar25 - dec24) AS diff_mar25_dec24,
+ (dec24 - oct24) AS diff_dec24_oct24
+FROM pivot_data
+WHERE sep25 IS NOT NULL
+ AND jun25 IS NOT NULL
+ORDER BY diff_sept25_jun25 DESC;
+
